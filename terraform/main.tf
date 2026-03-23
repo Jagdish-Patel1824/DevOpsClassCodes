@@ -1,6 +1,7 @@
 resource "aws_instance" "ContactBook" {
   ami           = var.ami_id
   instance_type = var.instance_type
+  key_name      = "devops-final"  
 
   tags = {
     Name       = var.tag_name
