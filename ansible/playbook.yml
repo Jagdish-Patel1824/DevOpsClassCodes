@@ -23,7 +23,12 @@
         name: tomcat9
         state: started
         enabled: yes
-
+        
+    - name: Remove old WAR
+      file:
+        path: /var/lib/tomcat9/webapps/addressbook.war
+        state: absent
+         
     - name: Copy WAR file
       copy:
         src: ../target/addressbook.war
