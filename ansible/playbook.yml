@@ -3,24 +3,25 @@
   become: yes
 
   tasks:
-     - name: Install Java
-       apt:
-         name: openjdk-17-jdk
-         state: present
-         update_cache: yes
-     
-     - name: Create app directory
-       file:
+
+    - name: Install Java
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
+
+    - name: Create app directory
+      file:
         path: /home/ubuntu/contact-app
         state: directory
 
-     - name: copy files
-       copy:
-          src: /Users/jagdish/.jenkins/workspace/AddressBook/target/*.war
-          dest: /home/ubuntu/contact-app/addressbook.war
+    - name: Copy WAR file
+      copy:
+        src: ../target/addressbook.war
+        dest: /home/ubuntu/contact-app/addressbook.war
 
-     - name: Stop old app if running
-       shell: "pkill -f addressbook.war || true"
+    - name: Stop old app if running
+      shell: "pkill -f addressbook.war || true"
 
-     - name: Run app
-       shell: "nohup java -jar /home/ubuntu/contact-app/addressbook.war > app.log 2>&1 &" 
+    - name: Run app
+      shell: "nohup java -jar /home/ubuntu/contact-app/addressbook.war > app.log 2>&1 &"
