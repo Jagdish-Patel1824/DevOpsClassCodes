@@ -1,6 +1,9 @@
-- name: Ansible Pipeline
+- name: Deploy WAR on Tomcat
   hosts: all
   become: yes
+
+  vars:
+    tomcat_path: /opt/tomcat
 
   tasks:
 
@@ -10,18 +13,23 @@
         state: present
         update_cache: yes
 
-    - name: Create app directory
-      file:
-        path: /home/ubuntu/contact-app
-        state: directory
+    - name: Install Tomcat
+      apt:
+        name: tomcat9
+        state: present
+
+    - name: Start Tomcat service
+      service:
+        name: tomcat9
+        state: started
+        enabled: yes
 
     - name: Copy WAR file
       copy:
         src: ../target/addressbook.war
-        dest: /home/ubuntu/contact-app/addressbook.war
+        dest: /var/lib/tomcat9/webapps/addressbook.war
 
-    - name: Stop old app if running
-      shell: "pkill -f addressbook.war || true"
-
-    - name: Run app
-      shell: "nohup java -jar /home/ubuntu/contact-app/addressbook.war > app.log 2>&1 &"
+    - name: Restart Tomcat
+      service:
+        name: tomcat9
+        state: restarted
