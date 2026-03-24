@@ -1,40 +1,78 @@
-- name: Deploy WAR on Tomcat
+---
+- name: Docker-Pipeline
   hosts: all
   become: yes
 
   vars:
-    tomcat_path: /opt/tomcat
+    docker_image_name: myapp
+    docker_container_name: myapp_container
 
   tasks:
 
-    - name: Install Java
-      apt:
-        name: openjdk-17-jdk
-        state: present
-        update_cache: yes
+  - name: Ensure Python installed
+    package:
+      name: python3
+      state: present
 
-    - name: Install Tomcat
-      apt:
-        name: tomcat9
-        state: present
+  - name: Install Python and pip
+    apt:
+      name:
+        - python3
+        - python3-pip
+      state: present
+      update_cache: yes
 
-    - name: Start Tomcat service
-      service:
-        name: tomcat9
-        state: started
-        enabled: yes
-        
-    - name: Remove old WAR
-      file:
-        path: /var/lib/tomcat9/webapps/addressbook.war
-        state: absent
-         
-    - name: Copy WAR file
-      copy:
-        src: ../target/addressbook.war
-        dest: /var/lib/tomcat9/webapps/addressbook.war
+  - name: Install Docker
+    apt:
+      name: docker.io
+      state: present
+      update_cache: yes
 
-    - name: Restart Tomcat
-      service:
-        name: tomcat9
-        state: restarted
+  - name: Install Docker SDK (safe way)
+    apt:
+      name: python3-docker
+      state: present
+      update_cache: yes
+
+  - name: Start Docker service
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+  - name: Add user to docker group
+    user:
+      name: "{{ ansible_user }}"
+      groups: docker
+      append: yes
+
+  - name: Copy WAR file to server
+    copy:
+      src: ../target/addressbook.war
+      dest: /tmp/addressbook.war
+
+  - name: Remove old container
+    docker_container:
+      name: "{{ docker_container_name }}"
+      state: absent
+      force_kill: yes
+
+  - name: Remove old image
+    docker_image:
+      name: "{{ docker_image_name }}"
+      state: absent
+
+  - name: Run Docker container
+    docker_container:
+      name: "{{ docker_container_name }}"
+      image: tomcat:9-jdk17
+      state: started
+      restart_policy: always
+      ports:
+        - "8080:8080"
+      volumes:
+        - "/tmp/addressbook.war:/usr/local/tomcat/webapps/addressbook.war"
+
+  - name: Debug output
+    debug:
+      msg: "App deployed on {{ inventory_hostname }}"

@@ -1,6 +1,6 @@
 variable "ami_id" {
   description = "AMI ID for EC2"
-  default     = "ami-02dfbd4ff395f2a1b"
+  default     = "ami-0ec10929233384c7f"
 }
 
 variable "instance_type" {
@@ -25,4 +25,8 @@ variable "project" {
 
 variable "env" {
   default = "Maven Project"
+}
+
+variable "roles" {
+  default = "app-server"
 }
