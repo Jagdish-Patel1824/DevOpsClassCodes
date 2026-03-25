@@ -8,31 +8,16 @@
     docker_container_name: myapp_container
 
   tasks:
+  
+  - name: Gather package facts
+    package_facts:
+      manager: auto
 
-  - name: Ensure Python installed
-    package:
-      name: python3
-      state: present
-
-  - name: Install Python and pip
-    apt:
-      name:
-        - python3
-        - python3-pip
-      state: present
-      update_cache: yes
-
-  - name: Install Docker
+  - name: Install Docker only if not present
     apt:
       name: docker.io
       state: present
-      update_cache: yes
-
-  - name: Install Docker SDK (safe way)
-    apt:
-      name: python3-docker
-      state: present
-      update_cache: yes
+    when: ansible_facts.packages['docker.io'] is not defined
 
   - name: Start Docker service
     service:
@@ -40,15 +25,10 @@
       state: started
       enabled: true
 
-  - name: Add user to docker group
-    user:
-      name: "{{ ansible_user }}"
-      groups: docker
-      append: yes
-
   - name: Copy WAR file to server
     copy:
       src: ../target/addressbook.war
+      #src: /Users/jagdish/Documents/DevOpsClassCodes/addressbook.war
       dest: /tmp/addressbook.war
 
   - name: Remove old container
@@ -73,6 +53,6 @@
       volumes:
         - "/tmp/addressbook.war:/usr/local/tomcat/webapps/addressbook.war"
 
-  - name: Debug output
+  - name: Access URL
     debug:
-      msg: "App deployed on {{ inventory_hostname }}"
+      msg: "Server {{ inventory_hostname }} → http://{{ ansible_host }}:8080/addressbook"

@@ -6,12 +6,16 @@ regions:
 filters:
   "tag:Roles": "app-server"
 
+hostnames:
+  - public-dns-name
+
 keyed_groups:
   - key: tags.Name
     prefix: server
 
 compose:
-  ansible_host: public_dns_name
-  ansible_user: "'ubuntu'"
-  ansible_ssh_private_key_file: "'/Users/jagdish/Downloads/devops-final.pem'"
-  ansible_python_interpreter: /usr/bin/python3
+  ansible_host: public_ip_address
+  #ansible_host: public_dns_name
+  ansible_user: ubuntu
+  #ansible_ssh_private_key_file: "'/Users/jagdish/Downloads/devops-final.pem'"
+  ansible_ssh_private_key_file: "{{ lookup('env','PEM_FILE') }}"
