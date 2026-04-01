@@ -1,6 +1,6 @@
 ---
 - name: ContactBook's Full DevOps Setup (K3s + Helm + Monitoring + App)
-  hosts: k8s-master
+  hosts: all
   become: yes
 
   environment:
