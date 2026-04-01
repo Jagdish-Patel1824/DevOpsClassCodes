@@ -67,8 +67,12 @@
       command: kubectl apply -f /home/ubuntu/monitoring/serviceMonitor.yml
 
     # 🟫 Step 6: Load Grafana dashboard
-    - name: Apply Dashboard ConfigMap
-      command: kubectl apply -f /home/ubuntu/monitoring/dashboard.json
+    - name: Create Grafana Dashboard ConfigMap
+      shell: |
+        kubectl create configmap grafana-dashboard \
+        --from-file=/home/ubuntu/monitoring/dashboard.json \
+        -n monitoring \
+        --dry-run=client -o yaml | kubectl apply -f -
 
     
 
