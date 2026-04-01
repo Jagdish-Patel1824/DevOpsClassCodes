@@ -1,0 +1,40 @@
+#---
+# - name: Docker-Pipeline
+#   hosts: all
+#   become: yes
+
+#   vars:
+#     docker_container_name: myapp_container
+
+#   tasks:
+
+#   - name: Install Docker if not present
+#     apt:
+#       name: docker.io
+#       state: present
+#       update_cache: yes
+
+#   - name: Start Docker service
+#     service:
+#       name: docker
+#       state: started
+#       enabled: true
+
+#   - name: Remove old container (if exists)
+#     docker_container:
+#       name: "{{ docker_container_name }}"
+#       state: absent
+#       force_kill: yes
+
+#   - name: Run Docker container
+#     docker_container:
+#       name: "{{ docker_container_name }}"
+#       image: jagdish4281/myapp:latest
+#       state: started
+#       restart_policy: always
+#       ports:
+#         - "8080:8080"
+
+#   - name: Show access URL
+#     debug:
+#       msg: "Started on http://{{ ansible_host }}:8080/addressbook"
