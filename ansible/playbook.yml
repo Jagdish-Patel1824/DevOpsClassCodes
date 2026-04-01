@@ -1,58 +1,112 @@
----
-- name: Docker-Pipeline
-  hosts: all
+#---
+# - name: Docker-Pipeline
+#   hosts: all
+#   become: yes
+
+#   vars:
+#     docker_container_name: myapp_container
+
+#   tasks:
+
+#   - name: Install Docker if not present
+#     apt:
+#       name: docker.io
+#       state: present
+#       update_cache: yes
+
+#   - name: Start Docker service
+#     service:
+#       name: docker
+#       state: started
+#       enabled: true
+
+#   - name: Remove old container (if exists)
+#     docker_container:
+#       name: "{{ docker_container_name }}"
+#       state: absent
+#       force_kill: yes
+
+#   - name: Run Docker container
+#     docker_container:
+#       name: "{{ docker_container_name }}"
+#       image: jagdish4281/myapp:latest
+#       state: started
+#       restart_policy: always
+#       ports:
+#         - "8080:8080"
+
+#   - name: Show access URL
+#     debug:
+#       msg: "Started on http://{{ ansible_host }}:8080/addressbook"
+
+
+
+- name: ContactBook's Full DevOps Setup (K3s + Helm + Monitoring + App)
+  hosts: k8s-master
   become: yes
 
-  vars:
-    docker_image_name: myapp
-    docker_container_name: myapp_container
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
   tasks:
-  
-  - name: Gather package facts
-    package_facts:
-      manager: auto
+   
+    - name: Copy K8s files to server
+      copy:
+        src: /Users/jagdish/Documents/DevOpsClassCodes/k8s/
+        dest: /home/ubuntu/k8s/
 
-  - name: Install Docker only if not present
-    apt:
-      name: docker.io
-      state: present
-    when: ansible_facts.packages['docker.io'] is not defined
+    - name: Copy Monitoring files
+      copy:
+        src: /Users/jagdish/Documents/DevOpsClassCodes/monitoring/
+        dest: /home/ubuntu/monitoring/
 
-  - name: Start Docker service
-    service:
-      name: docker
-      state: started
-      enabled: true
+    # 🟩 Step 0: Install K3s (only if not installed)
+    - name: Install K3s
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
 
-  - name: Copy WAR file to server
-    copy:
-      src: ../target/addressbook.war
-      #src: /Users/jagdish/Documents/DevOpsClassCodes/addressbook.war
-      dest: /tmp/addressbook.war
+    # 🟩 Step 0.1: Wait for Kubernetes to be ready
+    - name: Wait for node to be ready
+      shell: kubectl get nodes
+      register: result
+      retries: 10
+      delay: 10
+      until: result.rc == 0
 
-  - name: Remove old container
-    docker_container:
-      name: "{{ docker_container_name }}"
-      state: absent
-      force_kill: yes
+    # 🟦 Step 1: Install Helm (only if not installed)
+    - name: Install Helm
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
 
-  - name: Remove old image
-    docker_image:
-      name: "{{ docker_image_name }}"
-      state: absent
+    # 🟦 Step 2: Add Prometheus repo
+    - name: Add Prometheus Helm repo
+      shell: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
 
-  - name: Run Docker container
-    docker_container:
-      name: "{{ docker_container_name }}"
-      image: tomcat:9-jdk17
-      state: started
-      restart_policy: always
-      ports:
-        - "8080:8080"
-      volumes:
-        - "/tmp/addressbook.war:/usr/local/tomcat/webapps/addressbook.war"
+    # 🟥 Step 3: Install / Upgrade Prometheus + Grafana
+    - name: Install Prometheus Stack
+      shell: |
+        helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+        --namespace monitoring --create-namespace
 
-  - name: Access URL
-    debug:
-      msg: "Server {{ inventory_hostname }} → http://{{ ansible_host }}:8080/addressbook"
+    # 🟨 Step 4: Deploy your app
+    - name: Apply Deployment
+      command: kubectl apply -f /home/ubuntu/k8s/deployment.yml
+
+    - name: Apply Service
+      command: kubectl apply -f /home/ubuntu/k8s/service.yml
+
+    # 🟪 Step 5: Connect Prometheus to app
+    - name: Apply ServiceMonitor
+      command: kubectl apply -f /home/ubuntu/monitoring/serviceMonitor.yml
+
+    # 🟫 Step 6: Load Grafana dashboard
+    - name: Apply Dashboard ConfigMap
+      command: kubectl apply -f /home/ubuntu/monitoring/dashboard.json
+
+    
+
+       
