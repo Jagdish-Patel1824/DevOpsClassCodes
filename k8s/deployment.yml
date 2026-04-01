@@ -17,22 +17,25 @@ spec:
 
     spec:
       containers:
+
+        # 🟩 Main App (Tomcat)
         - name: addressbook
           image: tomcat:9-jdk17
           ports:
             - containerPort: 8080
-        
+
+          volumeMounts:
+            - name: war-volume
+              mountPath: /usr/local/tomcat/webapps/addressbook.war
+
+        # 🟦 Node Exporter
         - name: node-exporter
           image: prom/node-exporter
           ports:
             - containerPort: 9100
 
-          volumeMounts:
-            - name: war-volume
-              mountPath: /usr/local/tomcat/webapps
-
       volumes:
         - name: war-volume
           hostPath:
-            path: ../target/addressbook.war
-            type: Directory
+            path: /home/ubuntu/target/addressbook.war   # ✅ ABSOLUTE PATH
+            type: File
