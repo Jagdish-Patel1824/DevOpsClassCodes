@@ -54,6 +54,7 @@
       shell: |
         helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
         -n monitoring \
+        --create-namespace \
         -f /home/ubuntu/monitoring/values.yml
 
     # 🟨 Step 4: Deploy your app
@@ -67,9 +68,6 @@
     - name: Apply ServiceMonitor
       command: kubectl apply -f /home/ubuntu/monitoring/serviceMonitor.yml
 
-    # 🟫 Step 6: Load Grafana dashboard
-    - name: Apply ConfigMap
-      command: kubectl apply -f /home/ubuntu/k8s/dashboard-configmap.yml
 
     
 

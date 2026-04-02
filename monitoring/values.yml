@@ -3,6 +3,19 @@ grafana:
     type: NodePort
     nodePort: 30009
 
+  sidecar:
+    dashboards:
+      enabled: true
+
+  dashboards:
+    default:
+      addressbook:
+        file: dashboard.json    
+
+  adminUser: admin
+  adminPassword: "admin123"
+
+
 prometheus:
   service:
     type: NodePort
