@@ -7,3 +7,7 @@ prometheus:
   service:
     type: NodePort
     nodePort: 30008
+
+
+# helm get values monitoring -n monitoring
+# to auto load dash

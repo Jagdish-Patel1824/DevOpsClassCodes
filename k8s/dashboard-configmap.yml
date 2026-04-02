@@ -5,11 +5,5 @@ metadata:
   namespace: monitoring
   labels:
     grafana_dashboard: "1"
-
 data:
-  dashboard.json: |
-    {
-      "annotations": {},
-      "panels": [],
-      "title": "AddressBook Dashboard"
-    }
+  dashboard.json: "{{ lookup('file', '/home/ubuntu/monitoring/dashboard.json') }}"
