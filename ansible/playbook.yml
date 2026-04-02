@@ -68,7 +68,17 @@
     - name: Apply ServiceMonitor
       command: kubectl apply -f /home/ubuntu/monitoring/serviceMonitor.yml
 
-
+    - name: Inject dashboard to Grafana
+      shell: |
+        kubectl create configmap grafana-dashboard \
+        --from-file=dashboard.json=/home/ubuntu/monitoring/dashboard.json \
+        -n monitoring \
+        --dry-run=client -o yaml | kubectl apply -f -
     
-
+    - name: Label configmap
+      shell: |
+        kubectl label configmap grafana-dashboard \
+        grafana_dashboard=1 \
+        -n monitoring \
+        --overwrite
        

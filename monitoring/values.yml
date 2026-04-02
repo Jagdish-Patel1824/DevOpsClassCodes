@@ -3,37 +3,14 @@ grafana:
     type: NodePort
     nodePort: 30009
 
-  sidecar:
-    dashboards:
-      enabled: true
-  
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: 'default'
-          orgId: 1
-          folder: ''
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/default
-
-  dashboards:
-    default:
-      addressbook:
-        file: dashboard.json    
-
   adminUser: admin
   adminPassword: "admin123"
 
+  sidecar:
+    dashboards:
+      enabled: true
 
 prometheus:
   service:
     type: NodePort
     nodePort: 30008
-
-
-# helm get values monitoring -n monitoring
-# to auto load dash
