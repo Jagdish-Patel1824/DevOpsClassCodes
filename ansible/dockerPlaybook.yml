@@ -1,40 +1,44 @@
-#---
-# - name: Docker-Pipeline
-#   hosts: all
-#   become: yes
+---
+- name: Docker-Pipeline for PHP/Java Project
+  hosts: all
+  become: yes
 
-#   vars:
-#     docker_container_name: myapp_container
+  vars:
+    docker_container_name: addressbook_container
+    war_file_path: /home/ubuntu/addressbook.war   # Path on host
+    tomcat_webapps_path: /usr/local/tomcat/webapps # Tomcat default
 
-#   tasks:
+  tasks:
 
-#   - name: Install Docker if not present
-#     apt:
-#       name: docker.io
-#       state: present
-#       update_cache: yes
+    - name: Install Docker if not present
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
 
-#   - name: Start Docker service
-#     service:
-#       name: docker
-#       state: started
-#       enabled: true
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
 
-#   - name: Remove old container (if exists)
-#     docker_container:
-#       name: "{{ docker_container_name }}"
-#       state: absent
-#       force_kill: yes
+    - name: Remove old container (if exists)
+      docker_container:
+        name: "{{ docker_container_name }}"
+        state: absent
+        force_kill: yes
 
-#   - name: Run Docker container
-#     docker_container:
-#       name: "{{ docker_container_name }}"
-#       image: jagdish4281/myapp:latest
-#       state: started
-#       restart_policy: always
-#       ports:
-#         - "8080:8080"
+    - name: Run Docker container with Tomcat
+      docker_container:
+        name: "{{ docker_container_name }}"
+        image: tomcat:9.0-jdk11
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:8080"
+        volumes:
+          - "{{ war_file_path }}:{{ tomcat_webapps_path }}/addressbook.war"
 
-#   - name: Show access URL
-#     debug:
-#       msg: "Started on http://{{ ansible_host }}:8080/addressbook"
+    - name: Show access URL
+      debug:
+        msg: "Application deployed at http://{{ ansible_host }}:8080/addressbook"
